@@ -1,0 +1,52 @@
+#include <cs50.h>
+#include <stdio.h>
+
+int Reorganization (int m);
+int main(void)
+{
+    long card_number = get_long("Number: ");    
+    int checker = 0, first_digit = 0;
+    for (long n = card_number; n > 0; n = n / 10)
+    {
+        checker+=1;
+        first_digit = n;
+    }
+    printf("Checker = %i\n", checker);     
+    printf("first_digit = %i\n", first_digit);   
+    int sum = 0, sum2=0;
+     for (long n = card_number/10; n > 0; n = n/100)
+    {
+         int m = (n % 10)*2; //remainder of the division
+         if (m > 9)
+         {
+             int j = m % 10;
+             m = m / 10 + j;     
+         }
+         printf("n remainder of the division of 10 %i\n", m);
+         sum = sum + m ; 
+     }
+    printf("Sum %i\n", sum);
+     for (long n = card_number; n > 0; n = n/100)
+     {  
+         sum2 = sum2 + (n % 10) ; //remainder of the division    
+     }
+   printf("Sum2 %i\n", sum2); 
+    
+   if ((sum + sum2) % 10 == 0) 
+   {
+       if (checker == 15) {printf("AMEX\n");}
+       if (checker == 13) {printf("VISA\n");}
+       if (checker == 16&&first_digit==4) {printf("VISA\n");}
+       if (checker == 16&&first_digit!=4) {printf("MASTERCARD\n");}
+   }   
+    else {printf("INVALID\n");}
+}
+
+int Reorganization (int m)
+{
+    int j = m % 10;
+    m = m / 10 + j;
+    return m;
+}
+
+
