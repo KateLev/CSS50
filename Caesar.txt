@@ -6,66 +6,67 @@
 int main(int argc, string argv[])
 {
     //printf ("argc = %i\n", argc);  
-    if (argc != 2  ) //checking that it's only ./caesan and one other parameter
-     {
-    //    printf("Error, more than one parameter!\n");
-         return 1;         
-     }
+    if (argc != 2) // checking that it's only ./caesan and one other parameter
+    { 
+        return 1; // printf("Error, more than one parameter!\n");         
+    }
     int n = strlen(argv[1]); 
     char The_modul [n + 1]; //because of /0 symbol
     strcpy(The_modul, argv[1]); //copy one string to another to have a possibility to use array to compare symbols
-    for (int i = 0;  i < n; i++ )
+    for (int i = 0;  i < n; i++)
     {
         //printf ("The_modul = %c ", The_modul[i]);  
-        if (isdigit(The_modul[i])!=0) //we are checking numbers for correct input with isdigit function https://man.cs50.io/3/isdigit
+        if (isdigit(The_modul[i]) != 0) 
         {
-           // printf("It's a digit\n");
+          // printf("It's a digit\n"); //we are checking numbers for correct input with isdigit function https://man.cs50.io/3/isdigit
         }
         else 
         {
-            return 2; 
-            //printf("It's a trap!\n");
+            return 2;  //printf("It's a trap!\n");
         }
     }
-    int modul = atoi (argv[1]); // convert to integer  
+    int modul = atoi(argv[1]); // convert to integer  
     modul = modul % 26;
     string plaintext = get_string ("Plaintext: ");
     char plaintext_char[strlen (plaintext)];
-    strcpy(plaintext_char, plaintext); //copy Plaintext string to char to have a possibility to use array to compare symbols
-    for (int i = 0, m = strlen (plaintext); i < m; i++)
+    strcpy(plaintext_char, plaintext);  //copy Plaintext string to char to have a possibility to use array to compare symbols
+    printf("ciphertext: ");   
+    for (int i = 0, m = strlen(plaintext); i < m; i++)
     {
         if (plaintext_char[i] > 96 && plaintext_char[i] < 123) //check for lowercase letters
         {
             if (plaintext_char[i] + modul > 122)
             {
-                printf("The symbol order is %i\n ", plaintext_char[i] + modul - 26);
-                printf("The symbol code is %c\n", plaintext_char[i] + modul - 26);                      
+                // printf("The symbol order is %i\n ", plaintext_char[i] + modul - 26);
+                printf("%c", plaintext_char[i] + modul - 26);                      
             }
             else 
             {
-                printf("The symbol order is %i\n ", plaintext_char[i] + modul);
-                printf("The symbol code is %c\n", plaintext_char[i] + modul);      
+                // printf("The symbol order is %i\n ", plaintext_char[i] + modul);
+                printf("%c", plaintext_char[i] + modul);      
             }
         }
-        
-        if (plaintext_char[i] > 64 && plaintext_char[i] < 91) //check for upcase letters
+        else
         {
-            if (plaintext_char[i] + modul > 90)
+            if (plaintext_char[i] > 64 && plaintext_char[i] < 91) //check for upcase letters
             {
-                printf("The symbol order is %i\n ", plaintext_char[i] + modul - 26);
-                printf("The symbol code is %c\n", plaintext_char[i] + modul - 26);                      
+                if (plaintext_char[i] + modul > 90)
+                {
+                    //    printf("The symbol order is %i\n ", plaintext_char[i] + modul - 26);
+                    printf("%c", plaintext_char[i] + modul - 26);                 
+                }
+                else 
+                {
+                    //    printf("The symbol order is %i\n ", plaintext_char[i] + modul);
+                    printf("%c", plaintext_char[i] + modul);   
+                }
             }
             else 
             {
-                printf("The symbol order is %i\n ", plaintext_char[i] + modul);
-                printf("The symbol code is %c\n", plaintext_char[i] + modul);      
+                printf("%c", plaintext_char[i]);    //if it's not an alphabetic character, we don't need to modificate it
             }
-        }
-        
-   //     printf("The symbol order is %i\n ", plaintext_char[i] + modul);
-   //    printf("The symbol code is %c\n", plaintext_char[i] + modul);        
+        }       
     }
-
- //   printf ("modul = %i\n", modul);  
-    
+    printf("\n ");   
+    return 0;    
 }
