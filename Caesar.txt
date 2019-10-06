@@ -1,0 +1,26 @@
+#include <cs50.h>
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+
+int main(int argc, string argv[])
+{
+    printf ("argc = %i\n", argc);  
+    if (argc != 2  ) //checking that it's only ./caesan and one other parameter
+     {
+         printf("Error, more than one parameter!\n");
+         return 1;         
+     }
+    int n = strlen(argv[1]); 
+    char The_modul [n + 1]; //because of /0 symbol
+    strcpy(The_modul, argv[1]); //copy one string to another to have a possibility to use array to compare symbols
+    for (int i = 0;  i < n; i++ )
+    {
+        printf ("The_modul = %c ", The_modul[i]);  
+        if (isdigit(The_modul[i])!=0) {printf("It's a digit\n");}
+        else printf("It's a trap!\n");
+    }
+    int modul = atoi (argv[1]); // convert to integer  
+    printf ("modul = %i\n", modul);  
+    
+}
