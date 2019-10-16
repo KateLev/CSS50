@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
     }
 
     //we need a new char for each 512
-    unsigned char *buffer = malloc(512);
+    unsigned char *buffer = malloc(512); //here can be unsigned char buffer [512];
 
     //we are starting to read infile and store information in container
     while (fread(buffer, 1, 512, inptr)) // because 1 block of 512 and when we finished there will no any blocks
