@@ -62,10 +62,10 @@ bool load(const char *dictionary)
 
         // TODO
 
-        node *newNode=malloc (sizeof(node)); //new memory for linked list element
+        node *newNode = malloc(sizeof(node)); //new memory for linked list element
 
 
-        if (newNode==NULL)
+        if (newNode == NULL)
         {
             unload();
             return 1;
@@ -75,13 +75,13 @@ bool load(const char *dictionary)
 
         int index_for_hash = hash(word);  //to decide what linked list we need
 
-        strcpy (newNode->word, word); //copy the value to the linked list
+        strcpy(newNode->word, word); //copy the value to the linked list
 
 
         if (hashtable[index_for_hash] != NULL)  //if we already have nodes
         {
-        newNode->next = hashtable[index_for_hash];   //we added a link to the previous node
-        hashtable[index_for_hash] = newNode;  // the word value starts to be a new node
+            newNode->next = hashtable[index_for_hash];   //we added a link to the previous node
+            hashtable[index_for_hash] = newNode;  // the word value starts to be a new node
         }
         else  // if our list is empty
         {
@@ -95,7 +95,7 @@ bool load(const char *dictionary)
     fclose(file);
 
 
-    printf ("Word in dictionary is %i\n", count_dictionary);
+    //  printf ("Word in dictionary is %i\n", count_dictionary);
 
 
     // Indicate success
@@ -106,13 +106,13 @@ bool load(const char *dictionary)
 unsigned int size(void)
 {
     // TODO
-    if (count_dictionary!=0)
+    if (count_dictionary != 0)
     {
         return count_dictionary;
     }
     else
     {
-    return 0;
+        return 0;
     }
 }
 
@@ -133,7 +133,7 @@ bool check(const char *word)  //from the speller "bool misspelled = !check(word)
     {
         if (strcmp(modify_word, cursor->word) == 0)
         {
-            printf("The founded word is %s\n", word);
+            //        printf("The founded word is %s\n", word);
             return true;
         }
         cursor = cursor->next;
@@ -144,10 +144,20 @@ bool check(const char *word)  //from the speller "bool misspelled = !check(word)
 }
 
 // Unloads dictionary from memory, returning true if successful else false
+
 bool unload(void)
 {
-    // TODO
-    return false;
+    for (int i = 0; i < N; i++)
+    {
+        node *cursor = hashtable[i];
+        while (cursor != NULL)
+        {
+            node *temp = cursor;
+            cursor = cursor->next;
+            free(temp);
+        }
+    }
+    return true;
 }
 
 
