@@ -6,6 +6,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+
 #include "dictionary.h"
 
 // Represents number of buckets in a hash table
@@ -19,8 +20,12 @@ typedef struct node
 }
 node;
 
+
 // Represents a hash table
 node *hashtable[N];
+
+int count_dictionary = 0; //number of words in dictionary
+
 
 // Hashes word to a number between 0 and 25, inclusive, based on its first letter
 unsigned int hash(const char *word)
@@ -48,95 +53,93 @@ bool load(const char *dictionary)
     // Buffer for a word
     char word[LENGTH + 1];
 
+
     // Insert wo rds into hash table
+
+
     while (fscanf(file, "%s", word) != EOF)  // NEW text here!
     {
 
         // TODO
-        node *node1=malloc (sizeof(node));
-        if (node1==NULL)
+
+        node *newNode=malloc (sizeof(node)); //new memory for linked list element
+
+
+        if (newNode==NULL)
         {
             unload();
             return 1;
         }
 
-        strcpy (node1->word, word);
-        printf ("Word in dictionary is %s\n", node1->word);
+        count_dictionary++; //how many words we have
 
-      /*  int index = 0, words = 0;
+        int index_for_hash = hash(word);  //to decide what linked list we need
 
-        // Spell-check each word in text
+        strcpy (newNode->word, word); //copy the value to the linked list
 
-        for (int c = fgetc(file); c != EOF; c = fgetc(file))
+
+        if (hashtable[index_for_hash] != NULL)  //if we already have nodes
         {
-
-            // Allow only alphabetical characters and apostrophes
-            if (isalpha(c) || (c == '\'' && index > 0))
-            {
-                // Append character to word
-                word[index] = c;
-                index++;
-
-                // Ignore alphabetical strings too long to be words
-                if (index > LENGTH)
-                {
-                    // Consume remainder of alphabetical string
-                    while ((c = fgetc(file)) != EOF && isalpha(c));
-
-                    // Prepare for new word
-                    index = 0;
-                }
-            }
-
-
-             // We must have found a whole word
-
-             else if (index > 0)
-             {
-
-                // Terminate current word
-                 word[index] = '\0';
-
-                 node *node1=malloc (sizeof(node));
-                 if (node1==NULL)
-                {
-                     unload();
-                     return 1;
-                }
-
- //                 printf ("Word in dictionary is %s\n", word);
-                  strcpy (node1->word, word);
-
-                 // Update counter
-                 words++;
-
-                 // Prepare for next word
-                 index = 0;
-            }
-
-
+        newNode->next = hashtable[index_for_hash];   //we added a link to the previous node
+        hashtable[index_for_hash] = newNode;  // the word value starts to be a new node
         }
-        */
+        else  // if our list is empty
+        {
+            newNode->next = NULL;
+            hashtable[index_for_hash] = newNode;
+        }
+
     }
 
     // Close dictionary
     fclose(file);
 
+
+    printf ("Word in dictionary is %i\n", count_dictionary);
+
+
     // Indicate success
     return true;
 }
 
-// Returns number of words in dictionary if loaded else 0 if not yet loaded
+// Returns number of words in dictionary if loaded, else 0 if not yet loaded
 unsigned int size(void)
 {
     // TODO
+    if (count_dictionary!=0)
+    {
+        return count_dictionary;
+    }
+    else
+    {
     return 0;
+    }
 }
 
 // Returns true if word is in dictionary else false
-bool check(const char *word)
+bool check(const char *word)  //from the speller "bool misspelled = !check(word)"
 {
-    // TODO
+    char modify_word [strlen (word)]; //to make the word lowercase
+    strcpy(modify_word, word);
+    for (int i = 0; i < strlen(modify_word); i++)
+    {
+        modify_word[i] = tolower(modify_word[i]);
+
+    }
+
+    int index_for_hash=hash(modify_word); //where to search the word
+    node *cursor =  hashtable[index_for_hash];
+    while (cursor != NULL)
+    {
+        if (strcmp(modify_word, cursor->word) == 0)
+        {
+            printf("The founded word is %s\n", word);
+            return true;
+        }
+        cursor = cursor->next;
+    }
+
+
     return false;
 }
 
@@ -146,3 +149,5 @@ bool unload(void)
     // TODO
     return false;
 }
+
+
