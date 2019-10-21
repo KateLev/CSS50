@@ -1,0 +1,47 @@
+.main_menu li
+{
+    display:inline-block;
+    text-decoration:none;
+    border: 1px solid grey;
+    padding: 2px;
+    width: 100px;
+    margin: 2px;
+    text-align:center;
+    margin-top:auto;
+
+}
+.main_menu ul
+{
+    padding-left: 0;
+}
+.main_menu li:hover
+{
+    background-color:#6f42c1;
+}
+.main_menu a:hover
+{
+    color:white;
+}
+#cats:after
+{
+    content: ";)";
+
+    color: #efedf7;
+}
+#meow
+{
+    font-size:3em;
+}
+.container
+{
+    background-color:#efedf7;
+}
+footer
+{
+    text-align: right;
+}
+footer p
+{
+    color: black;
+    padding:10px;
+}
