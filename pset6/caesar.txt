@@ -1,0 +1,44 @@
+from sys import argv
+from cs50 import get_string
+
+
+def caesar(k):
+    plaintext = get_string("Plaintext: ")  # we take an input message
+    print("ciphertext: ", end="")
+    for c in plaintext:
+        value = ord(c)    # we get a unicode of every symbol
+        if value > 96 and value < 123:             # check for lowercase letters
+            if (value + k) > 122:
+                value = value + k - 26
+                letter = chr(value)
+                print(letter, end="")
+            else:
+                value = value + k
+                letter = chr(value)
+                print(letter, end="")
+        else:
+            if value > 64 and value < 91:   # check for upcase letters
+                if (value + k) > 90:
+                    value = value + k - 26
+                    letter = chr(value)
+                    print(letter, end="")
+                else:
+                    value = value + k
+                    letter = chr(value)
+                    print(letter, end="")
+            else:
+                print(c, end="")   # in this case it's non alphabetical character
+    print()
+
+def main():
+    if len(argv) != 2:     # because we ask only the name of program and the key like "caesar.py 10"
+        print("I need a key!")
+        exit(1)
+    else:
+        k = int(argv[1])  # we get the key from the user
+        k = k % 26
+        caesar(k)
+        exit(0)
+
+if __name__ == "__main__":
+    main()
