@@ -1,0 +1,33 @@
+from cs50 import get_string
+from sys import argv
+
+
+def main():
+    if len(argv) != 2:     # because we ask only the name of program and the key like "caesar.py 10"
+        print("Usage: python bleep.py dictionary")
+        exit(1)
+
+    banned_dictionary = set()      # new sets for our key
+
+    file = open(argv[1], "r")   # load a dictionary
+    for line in file:
+        banned_dictionary.add(line.rstrip("\n"))
+    file.close()
+
+    string_to_check = get_string("What message would you like to censor?\n")
+    s_list = string_to_check.split()    # we take a list of argument
+
+    for i in s_list:  # for every word in our list
+        temp_s = i.lower()
+        checker = 0
+        for j in banned_dictionary:  # for every word in dictionary
+            if temp_s == j:
+                print("*"*len(i), end=" ")  # replace with *
+                checker = 1
+        if checker == 0:
+            print(i, end=" ")
+    print()
+
+
+if __name__ == "__main__":
+    main()
