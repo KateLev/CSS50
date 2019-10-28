@@ -1,0 +1,59 @@
+from sys import argv
+from cs50 import get_string
+
+
+def vigenere(k):
+    plaintext = get_string("plaintext: ")  # we take an input message
+    print("ciphertext: ", end="")
+    s = argv[1].lower()  # we don't need an uppercase letters
+    key = []   # new list for our key
+
+    for c in s:   # we need to make conformity between a - 0, b - 1 etc
+        value = ord(c)
+        value = value - 97
+        key.append(value)
+#        print (c, end = " ")
+#    print()
+#    print (key, end = " ")
+
+#    n = len(plaintext)
+    j = 0
+    for c in plaintext:
+        value = ord(c)    # we get a unicode of every symbol
+        if value > 96 and value < 123:             # check for lowercase letters
+            if (value + key[j]) > 122:
+                value = value - 26
+            value = value + key[j]
+
+        elif value > 64 and value < 91:  # check for upcase letters
+            if (value + key[j]) > 90:
+                value = value - 26
+            value = value + key[j]
+
+        else:  # if it's not an alphabetic character, we don't need to modificate it
+            j = j - 1    # because we don't want to check this
+
+        letter = chr(value)
+        print(letter, end="")
+        if j == len(key) - 1:  # to shift our key
+            j = 0
+        else:
+            j = j + 1
+
+    print()
+
+
+def main():
+    if len(argv) != 2:     # because we ask only the name of program and the key like "caesar.py 10"
+        print("I need a correct key! (string only)")
+        exit(1)
+    elif argv[1].isalpha() == False:  # check if it is a string
+        print("The key must be an alphabetic symbols!")
+        exit(1)
+    else:
+        vigenere(argv[1])     # we get the key from the user and check if it's an alphabet
+        exit(0)
+
+
+if __name__ == "__main__":
+    main()
