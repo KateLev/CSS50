@@ -1,0 +1,42 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Quote
+{% endblock %}
+
+{% block main %}
+
+    <div class="container-quote">
+        <table class="table">
+            <thead class="thead-dark">
+                <tr>
+                    <th scope="col">Symbol</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Shares</th>
+                    <th scope="col">Price</th>
+                    <th scope="col">Total</th>
+                </tr>
+            </thead>
+        <tbody>
+            <tr>
+                <th scope="row">{{ Symbol }}</th>
+                <td>{{ name }}</td>
+                <td>{{ Shares }}</td>
+                <td>{{ price | usd }}</td>
+                <td>{{ "%.4f" % cost }} $</td>
+            </tr>
+            <tr>
+                <th scope="row"></th>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td><b>{{ "%.4f" % Total_Cash }} $</b></td>
+
+        </tbody>
+        </table>
+    </div>
+
+    <p>Congratulations, {{ user_name }}, you bought some quotes! </p>
+
+
+{% endblock %}
