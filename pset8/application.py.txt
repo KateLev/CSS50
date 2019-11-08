@@ -50,8 +50,38 @@ def index():
 @app.route("/buy", methods=["GET", "POST"])
 @login_required
 def buy():
-    """Buy shares of stock"""
-    return apology("TODO")
+    if request.method == "POST":   # if user put something in form
+        quote_to_buy = lookup(request.form.get("symbol"))  # check if we have suck quote
+        if not quote_to_buy:
+            return apology("Sorry, we didn't find this quote")
+
+        quote_number_to_buy = request.form.get("number_to_buy")  # check if number is correct
+        if not quote_number_to_buy:
+            return apology("We don't understand how much you want to buy")
+
+        rows = db.execute("SELECT * FROM users WHERE id = :id", id = session["user_id"]) # use our users table to select information about user
+
+        Total_Cash = rows[0]["cash"]
+        cost = float(quote_number_to_buy) * quote_to_buy['price']
+        Total_Cash = Total_Cash - cost
+
+        if Total_Cash < 0:
+            return apology("Not enought minerals :(")
+
+
+        result = db.execute("INSERT INTO usersQuote (user_id, Symbol, name, price, total_Cash) VALUES (:user_id, :Symbol, :name, :price, :total_Cash)",
+        user_id = rows[0]["id"], Symbol = quote_to_buy['symbol'], name=quote_to_buy['name'], price=quote_to_buy['price'], total_Cash = Total_Cash)
+
+        if not result:
+            return apology("Cannot insert into db")
+
+        db.execute("UPDATE users SET cash = :Total_Cash WHERE id = :id", Total_Cash = Total_Cash, id = session["user_id"])
+
+        return render_template("Buyed.html", name=quote_to_buy['name'], Symbol = quote_to_buy['symbol'], price=quote_to_buy['price'], user_id=rows[0]["id"], Shares = quote_number_to_buy, cost=cost, Total_Cash=Total_Cash, user_name=rows[0]['username'])
+
+    else:
+        return render_template("Buy.html")
+
 
 
 @app.route("/check", methods=["GET"])
