@@ -44,7 +44,29 @@ if not os.environ.get("API_KEY"):
 @login_required
 def index():
     """Show portfolio of stocks"""
-    return render_template("index.html")
+    users_data = db.execute("SELECT * FROM users WHERE id = :id", id = session ["user_id"])
+    quote_data = db.execute("SELECT * FROM usersQuote WHERE user_id = :id", id = session ["user_id"])
+
+
+    select_quote_data = db.execute("SELECT * FROM usersQuote WHERE user_id = :id", id = session ["user_id"])
+
+#    count = 0
+
+
+#    Shares_data = []
+
+ #   j = 0
+#    while j < len(quote_data):
+#        Shares_data.append(quote_data[j]["Shares"])
+#            count = count + int(quote_data[j]["Shares"])
+ #       j = j + 1
+
+#    print(Shares_data)
+#   print(count)
+
+
+
+    return render_template("index.html", quote_data = quote_data , cash = users_data[0]["cash"], Symbol = quote_data[0]["Symbol"] )
 
 
 @app.route("/buy", methods=["GET", "POST"])
@@ -69,8 +91,8 @@ def buy():
             return apology("Not enought minerals :(")
 
 
-        result = db.execute("INSERT INTO usersQuote (user_id, Symbol, name, price, total_Cash) VALUES (:user_id, :Symbol, :name, :price, :total_Cash)",
-        user_id = rows[0]["id"], Symbol = quote_to_buy['symbol'], name=quote_to_buy['name'], price=quote_to_buy['price'], total_Cash = Total_Cash)
+        result = db.execute("INSERT INTO usersQuote (user_id, Symbol, name, shares, price, total_Cash) VALUES (:user_id, :Symbol, :name, :shares, :price, :total_Cash)",
+        user_id = rows[0]["id"], Symbol = quote_to_buy['symbol'], name=quote_to_buy['name'], shares = quote_number_to_buy, price=quote_to_buy['price'], total_Cash = Total_Cash)
 
         if not result:
             return apology("Cannot insert into db")
