@@ -44,44 +44,73 @@ if not os.environ.get("API_KEY"):
 @login_required
 def index():
     """Show portfolio of stocks"""
-    users_data = db.execute("SELECT * FROM users WHERE id = :id", id = session ["user_id"])
+    users_data = db.execute("SELECT cash FROM users WHERE id = :id", id = session ["user_id"])
     quote_data = db.execute("SELECT * FROM usersQuote WHERE user_id = :id", id = session ["user_id"])
+    Quotes_data = db.execute("SELECT * FROM Quotes WHERE user_id = :id", id = session ["user_id"])
+
+    # I need information what quotes user have and how much
+
+    Symbol_stock = []
+    Symbol_shares = []
+    i = 0
+    while i < len(Quotes_data):
+        Symbol_stock.append(Quotes_data[i]["symbol"])
+        Symbol_shares.append(Quotes_data[i]["shares"])
+        i = i + 1
+
+    print ("SHARE", Symbol_shares)
+
+    # I need information what is quote's price for this moment (in this list quote_price['price'])
+
+    quote_price = []
+
+    for stock in Symbol_stock:
+        quote_price.append(lookup(stock))
 
 
-    select_quote_data = db.execute("SELECT * FROM usersQuote WHERE user_id = :id", id = session ["user_id"])
+    all_quote_price = []
+    i = 0
+    while i < len(quote_price):
+        all_quote_price.append(quote_price[i]["price"]*Symbol_shares[i])
+        i = i + 1
 
-#    count = 0
+    # The cost of all user's quote
 
+    sum = 0
+    for prices in all_quote_price:
+        sum = sum +  prices
 
-#    Shares_data = []
+    print ("all_quote_price", all_quote_price )
 
- #   j = 0
-#    while j < len(quote_data):
-#        Shares_data.append(quote_data[j]["Shares"])
-#            count = count + int(quote_data[j]["Shares"])
- #       j = j + 1
-
-#    print(Shares_data)
-#   print(count)
+    select_quote_data = db.execute("SELECT Symbol, Name, SUM(Shares) as Count FROM usersQuote WHERE user_id = :id group by Symbol, Name", id = session ["user_id"])
 
 
 
-    return render_template("index.html", quote_data = quote_data , cash = users_data[0]["cash"], Symbol = quote_data[0]["Symbol"] )
+    return render_template("index.html", Quotes_data=Quotes_data, cash = users_data[0]["cash"], quote_price = quote_price, all_quote_price=all_quote_price, sum=sum)
 
 
 @app.route("/buy", methods=["GET", "POST"])
 @login_required
 def buy():
     if request.method == "POST":   # if user put something in form
-        quote_to_buy = lookup(request.form.get("symbol"))  # check if we have suck quote
+
+        # check if we have suck quote
+
+        quote_to_buy = lookup(request.form.get("symbol"))
         if not quote_to_buy:
             return apology("Sorry, we didn't find this quote")
 
-        quote_number_to_buy = request.form.get("number_to_buy")  # check if number is correct
+        # check if number of quote to buy is correct
+
+        quote_number_to_buy = request.form.get("number_to_buy")
         if not quote_number_to_buy:
             return apology("We don't understand how much you want to buy")
 
-        rows = db.execute("SELECT * FROM users WHERE id = :id", id = session["user_id"]) # use our users table to select information about user
+        # use our users table to select information about user
+
+        rows = db.execute("SELECT * FROM users WHERE id = :id", id = session["user_id"])
+
+        # I need to check if user can buy these quotes (enough cash)
 
         Total_Cash = rows[0]["cash"]
         cost = float(quote_number_to_buy) * quote_to_buy['price']
@@ -90,6 +119,7 @@ def buy():
         if Total_Cash < 0:
             return apology("Not enought minerals :(")
 
+        # update our usersQuote table to make a hystory of every transaction
 
         result = db.execute("INSERT INTO usersQuote (user_id, Symbol, name, shares, price, total_Cash) VALUES (:user_id, :Symbol, :name, :shares, :price, :total_Cash)",
         user_id = rows[0]["id"], Symbol = quote_to_buy['symbol'], name=quote_to_buy['name'], shares = quote_number_to_buy, price=quote_to_buy['price'], total_Cash = Total_Cash)
@@ -97,9 +127,42 @@ def buy():
         if not result:
             return apology("Cannot insert into db")
 
+        # update our users table to set a new cash value
+
         db.execute("UPDATE users SET cash = :Total_Cash WHERE id = :id", Total_Cash = Total_Cash, id = session["user_id"])
 
-        return render_template("Buyed.html", name=quote_to_buy['name'], Symbol = quote_to_buy['symbol'], price=quote_to_buy['price'], user_id=rows[0]["id"], Shares = quote_number_to_buy, cost=cost, Total_Cash=Total_Cash, user_name=rows[0]['username'])
+
+        # I want to check if in my Quotes table are any unique pare user_id and symbol
+
+        check = db.execute("SELECT symbol FROM Quotes WHERE user_id = :id", id = session["user_id"])
+        x = 0;
+        j = 0;
+
+        # I try to find this symbol for this user, if yes - I need to update a table, if no, then I create a new row
+
+        while j < len(check):
+            if x == 1:
+                break
+            if check[j]["symbol"] == quote_to_buy['symbol']:
+                old_shares = db.execute ("SELECT shares from Quotes WHERE user_id = :id AND symbol =:i", id = session["user_id"], i = quote_to_buy["symbol"])
+                count_old_shares = int(old_shares[0]['shares'])
+                db.execute("UPDATE Quotes SET Shares =:shares WHERE user_id = :id AND symbol =:i", id = session["user_id"], i = quote_to_buy["symbol"], shares = count_old_shares + int(quote_number_to_buy))
+                shares = count_old_shares + int(quote_number_to_buy)
+#                print ("new shares", shares)
+                x = 1
+            j = j + 1
+
+
+
+        if x == 0:
+            Quotes_table = db.execute("INSERT INTO Quotes (user_id, Symbol, name, shares) VALUES (:user_id, :Symbol, :name, :shares)",
+            user_id = rows[0]["id"], Symbol = quote_to_buy['symbol'], name=quote_to_buy['name'], shares = quote_number_to_buy)
+#            print("Quotes_table", Quotes_table)
+
+#        print("check", check)
+
+# if we want separaTE TEMPLATE        return render_template("Buyed.html", name=quote_to_buy['name'], Symbol = quote_to_buy['symbol'], price=quote_to_buy['price'], user_id=rows[0]["id"], Shares = quote_number_to_buy, cost=cost, Total_Cash=Total_Cash, user_name=rows[0]['username'])
+        return redirect("/")
 
     else:
         return render_template("Buy.html")
@@ -115,8 +178,16 @@ def check():
 @app.route("/history")
 @login_required
 def history():
-    """Show history of transactions"""
-    return apology("TODO")
+    return apology("Bla-bla")
+
+#    users_data = db.execute("SELECT * FROM users WHERE id = :id", id = session ["user_id"])
+#    quote_data = db.execute("SELECT * FROM usersQuote WHERE user_id = :id", id = session ["user_id"])
+#    select_quote_data = db.execute("SELECT Symbol, Name, SUM(Shares) as Count FROM usersQuote WHERE user_id = :id group by Symbol, Name", id = session ["user_id"])
+
+#    return render_template("index.html", Quotes_data=Quotes_data, quote_data = quote_data , cash = users_data[0]["cash"], Symbol = quote_data[0]["Symbol"], select_quote_data = select_quote_data )
+
+
+
 
 
 @app.route("/login", methods=["GET", "POST"])
