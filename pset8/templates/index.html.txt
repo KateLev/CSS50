@@ -17,18 +17,64 @@
                     <th scope="col">Total</th>
                 </tr>
             </thead>
-        <tbody>
+         <tbody>
             <tr>
-                <th scope="row">Symbol</th>
-                <td>Name</td>
-                <td>Shares</td>
-                <td>Price</td>
-                <td>Total</td>
+                <th scope="row">
+                    {% for i in Quotes_data %}
+                    <p>{{ i.symbol }}</p>
+                    {% endfor %}
+                </th>
+                <td>
+                    {% for i in Quotes_data %}
+                    <p>{{ i.name }}</p>
+                    {% endfor %}
+                </td>
+                <td>
+                    {% for i in Quotes_data %}
+                    <p>{{ i.shares }}</p>
+                    {% endfor %}
+                </td>
+                <td>
+                    {% for i in quote_price %}
+                    <p>{{ i.price }}</p>
+                    {% endfor %}
+                </td>
+                <td>
+
+                    {% for i in all_quote_price -%}
+                    <p>{{"%.2f" % i }}</p>
+                    {%- endfor %}
+
+
+
+                </td>
+                <td>
+
+                </td>
             </tr>
-
-        </tbody>
+             <tr>
+                <th scope="row">Your cash
+                </th>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>
+                    {{ "%.2f" % cash }}
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">Total
+                </th>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>
+                    {{ "%.2f" % (cash + sum) }}
+                </td>
+            </tr>
+            </tbody>
         </table>
-    </div>
 
+    </div>
 
 {% endblock %}
