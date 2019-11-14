@@ -1,0 +1,59 @@
+import cs50
+import csv
+
+from flask import Flask, jsonify, redirect, render_template, request
+
+# Configure application
+app = Flask(__name__)
+
+# Reload templates when they are changed
+app.config["TEMPLATES_AUTO_RELOAD"] = True
+
+
+@app.after_request
+def after_request(response):
+    """Disable caching"""
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Expires"] = 0
+    response.headers["Pragma"] = "no-cache"
+    return response
+
+
+@app.route("/", methods=["GET"])
+def get_index():
+    return redirect("/form")
+
+
+@app.route("/form", methods=["GET"])
+def get_form():
+    return render_template("form.html")
+
+
+@app.route("/form", methods=["POST"])
+def post_form():
+    name = request.form.get("name")
+    age = request.form.get("age")
+    books = request.form.get("books")
+    Email = request.form.get("Email")
+    pet = request.form.get("pet")
+    best = request.form.get("best")
+    if name == "" or age == "" or pet == "" or Email == "" or books == "":
+        return render_template("error.html", message="Incomplete survey")
+
+    with open('survey.csv', 'w', newline='') as csvfile:
+        spamwriter = csv.writer(csvfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+        spamwriter.writerow([name] + [age] + [pet] + [Email] + [books] + [best])
+        return redirect("/sheet")
+
+    return render_template("error.html", message="Oops, something was wrong with post_form")
+
+
+@app.route("/sheet", methods=["GET"])
+def get_sheet():
+    with open('survey.csv', newline='') as csvfile:
+        spamreader = csv.reader(csvfile, delimiter=' ', quotechar='|')
+        for row in spamreader:
+            print(', '.join(row))
+        print("row", row)
+        return render_template("sheet.html", row=row)
+    return render_template("error.html", message="Something wrong with get_sheets")
