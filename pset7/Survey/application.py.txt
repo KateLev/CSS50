@@ -37,12 +37,13 @@ def post_form():
     Email = request.form.get("Email")
     pet = request.form.get("pet")
     best = request.form.get("best")
-    if name == "" or age == "" or pet == "" or Email == "" or books == "":
+    pony = request.form.get("pony")
+    if name == "" or age == "" or pet == "" or Email == "" or books == "" or pony == "":
         return render_template("error.html", message="Incomplete survey")
 
     with open('survey.csv', 'w', newline='') as csvfile:
         spamwriter = csv.writer(csvfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-        spamwriter.writerow([name] + [age] + [pet] + [Email] + [books] + [best])
+        spamwriter.writerow([pony] + [name] + [age] + [pet] + [Email] + [books] + [best])
         return redirect("/sheet")
 
     return render_template("error.html", message="Oops, something was wrong with post_form")

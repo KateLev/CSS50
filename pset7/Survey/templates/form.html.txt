@@ -1,0 +1,124 @@
+      <label for="inputState">Choose your pony</label>
+            <select name="pony">
+                <option>Twighlight Sparkle</option>
+                <option></option>Flattershy</option>
+                <option>Rarity</option>
+                <option>Apple Jack</option>
+                <option>Pinky Pie</option>
+                <option>Rainbow Dash</option>
+            </select>
+
+
+
+{% extends "layout.html" %}
+
+{% block main %}
+<script>
+
+        function SendForm()
+        {
+            required = new Array("name", "age", "Email", "pet","books", "pony");
+            required_show = new Array("name", "age","e-mail","pet","books", "pony");
+
+            var i, j;
+            for(j=0; j<required.length; j++)
+            {
+                for (i=0; i<document.forms[0].length; i++)
+                {
+                    if (document.forms[0].elements[i].name == required[j] && document.forms[0].elements[i].value == "" )
+                    {
+                        alert('Please, enter ' + required_show[j]);
+                        document.forms[0].elements[i].focus();
+                        return false;
+                    }
+                }
+
+            }
+
+            return true;
+        }
+
+    </script>
+
+    <!-- http://getbootstrap.com/docs/4.1/content/typography/ -->
+    <h1 class="mb-3">Form</h1>
+
+    <!-- http://getbootstrap.com/docs/4.1/components/forms/ -->
+    <form action="/form" method="post" onsubmit="return SendForm()";>
+        <div class="form-group">
+                   <label for="inputState">Choose your pony</label>
+                   <select name="pony">
+                                      <option>Twighlight Sparkle</option>
+                                      <option></option>Flattershy</option>
+                                      <option>Rarity</option>
+                                      <option>Apple Jack</option>
+                                       <option>Pinky Pie</option>
+                                      <option value="rd">Rainbow Dash</option>
+                    </select>
+        </div>
+        <div class="form-group">
+                  <label for="username">What is your name </label>
+                  <input name = "name" type="text" class="form-control" id="username" aria-describedby="name" placeholder="Enter name">
+                  <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
+        </div>
+         <div class="form-group">
+                  <label for="age">How old are you</label>
+                  <input name = "age" type="number" min = "0" class="form-control" aria-describedby="emailHelp" placeholder="Enter age">
+                  <small id="age" class="form-text text-muted">We'll never share your email with anyone else.</small>
+        </div>
+        <label for="Check_animals">Choose the most liked pet</label>
+        <div class="form-check">
+                           <input class="form-check-input" type="radio" value="Every" checked name="pet">
+                           <label class="form-check-label" for="defaultCheck1">
+                                   Every creature
+                           </label>
+                           </div><div class="form-check">
+                           <input class="form-check-input" type="radio" value="Cats" name="pet">
+                           <label class="form-check-label" for="defaultCheck1">
+                                   Cats
+                           </label>
+                           </div><div class="form-check">
+                           <input class="form-check-input" type="radio" value="Dogs" name="pet">
+                            <label class="form-check-label" for="defaultCheck1">
+                                   Dogs
+                           </label>
+                           </div><div class="form-check">
+                           <input class="form-check-input" type="radio" value="Pinguins" name="pet">
+                            <label class="form-check-label" for="defaultCheck1">
+                                   Pinguins
+                           </label>
+        </div>
+        <br>
+        <div class="form-group">
+                  <label for="exampleInputEmail1">Please, enter your Email address</label>
+                  <input name = "Email" type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter email">
+                  <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
+        </div>
+       <label for="exampleInputEmail1">What books do you like</label><br>
+       <div class="form-check form-check-inline">
+            <input name="books" class="form-check-input" type="checkbox" id="inlineCheckbox1" value="Prose">
+            <label class="form-check-label" for="inlineCheckbox1">Prose</label>
+        </div>
+        <div class="form-check form-check-inline">
+              <input name="books" class="form-check-input" type="checkbox" id="inlineCheckbox2" value="Poetry">
+              <label class="form-check-label" for="inlineCheckbox2">Poetry</label>
+        </div>
+        </div>
+        <br><br>
+         <div class="form-group">
+                   <label for="inputState">Who is the best?</label>
+                   <select name="best" id="inputState" class="form-control">
+                       <option selected>You</option>
+                       <option>You are the only one :)</option>
+                       <option>me</option>
+        </select>
+    </div>
+
+        <!-- http://getbootstrap.com/docs/4.1/components/buttons/ -->
+        <button class="btn btn-primary" type="submit"> Submit </button>
+
+    </form>
+
+
+
+{% endblock %}
