@@ -19,6 +19,14 @@ import csv
 from telegram import ReplyKeyboardMarkup
 from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters,
                           ConversationHandler)
+						  
+REQUEST_KWARGS={
+    'proxy_url': 'socks5://...',
+	'urllib3_proxy_kwargs': {	    
+        'username': '...',
+        'password': '...'
+    }
+}
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -37,23 +45,19 @@ reply_keyboard = [['Pizza', 'VOK'],
 markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
 
+
 def facts_to_str(user_data):
-    facts = list()
-	
-    
-    file = open('Band.txt','a')
-    
+    facts = list()  
+       
     for key, value in user_data.items():
         facts.append('{} - {}'.format(key, value))
-        file.write('{} - {}'.format(key, value) + '\n')        
-    
-    file.close()
+     
     return "\n".join(facts).join(['\n', '\n'])
 
 
 def start(update, context):
     update.message.reply_text(
-        "Hi! I'm from Food Band team. A clever bot that can help you to make a choice! "
+        "Hi!  I'm from Food Band team. A clever bot that can help you to make a choice! "
         "Why don't you tell me what food you prefer?",
         reply_markup=markup)
 
@@ -64,7 +68,7 @@ def regular_choice(update, context):
     text = update.message.text
     context.user_data['choice'] = text
     update.message.reply_text(
-        '{}? The wonderful choice! I imagine how tasty it will be.'.format(text.lower()))
+        '{}? The wonderful choice! I imagine how tasty it will be.'.format(text.capitalize()))
 
     return TYPING_REPLY
 
@@ -93,13 +97,21 @@ def received_information(update, context):
 
 def done(update, context):
     user_data = context.user_data
+	
+	# write into file this time item = type, user_data[item] - name
+    file = open('Band.txt','a')	
+    for item in user_data:
+        file.write (item + user_data[item] + '\n')
+    file.close()
+    print("1:", user_data)
     if 'choice' in user_data:
         del user_data['choice']
 
     update.message.reply_text("I learned these facts about you:"
                               "{}"
                               "Until next time!".format(facts_to_str(user_data)))
-
+    print("2:", user_data)
+	
     user_data.clear()
     return ConversationHandler.END
 
