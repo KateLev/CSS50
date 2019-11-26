@@ -15,18 +15,22 @@ bot.
 
 import logging
 import csv
+import psycopg2  # to work with postgrSQL
 
 from telegram import ReplyKeyboardMarkup
 from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters,
                           ConversationHandler)
-						  
+# I use proxy for my bot						  
 REQUEST_KWARGS={
-    'proxy_url': 'socks5://...',
+    'proxy_url': '...',
 	'urllib3_proxy_kwargs': {	    
         'username': '...',
         'password': '...'
     }
 }
+
+#@bot.message_handler(content_types=['text'])
+# def get_text_messages(message):
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -37,14 +41,16 @@ logger = logging.getLogger(__name__)
 CHOOSING, TYPING_REPLY, TYPING_CHOICE = range(3)
 
 reply_keyboard = [['Pizza', 'VOK'],
-                  ['RollbI', 'Sets','Something else...'],
+                  ['Rolls', 'Sets','Something else...'],
                   ['Done']]
+
 
 # this object is a keyboard, one_time_keyboard hides the keyboard if true
 				  
 markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
 
+# 
 
 def facts_to_str(user_data):
     facts = list()  
@@ -55,9 +61,12 @@ def facts_to_str(user_data):
     return "\n".join(facts).join(['\n', '\n'])
 
 
+	# our Greetings after /start
+
 def start(update, context):
+    
     update.message.reply_text(
-        "Hi!  I'm from Food Band team. A clever bot that can help you to make a choice! "
+        "Hello! \n I'm from Food Band team. A clever bot that can help you to make a choice! "
         "Why don't you tell me what food you prefer?",
         reply_markup=markup)
 
@@ -65,10 +74,20 @@ def start(update, context):
 
 
 def regular_choice(update, context):
+    
+    
+    
     text = update.message.text
+    
     context.user_data['choice'] = text
     update.message.reply_text(
-        '{}? The wonderful choice! I imagine how tasty it will be.'.format(text.capitalize()))
+        '{}? The wonderful choice! I imagine how tasty it will be. Please, choose the one you like'.format(text.capitalize()))
+	
+    if text=='Pizza':
+        reply_keyboard_pizza = [['Margarita','Test'],['Test']]
+        markup_pizza = ReplyKeyboardMarkup(reply_keyboard_pizza, one_time_keyboard=True)
+        update.message.reply_text('Please, choose the one you like',reply_markup=markup_pizza)
+		
 
     return TYPING_REPLY
 
@@ -98,19 +117,58 @@ def received_information(update, context):
 def done(update, context):
     user_data = context.user_data
 	
+	# to have user's information
+    user = update.message.from_user
+    print("user id =",user['id'])
+    print("user first_name =",user['first_name'])
+	
+	#I decided to use message_id as order_id
+    order_id = update.message.message_id
+    order_date = update.message.date
+    order_location = update.message.location
+    print ("message_id =", order_id)
+    print ("order_date =", order_date)
+    print ("order_location =", order_location)
 	# write into file this time item = type, user_data[item] - name
     file = open('Band.txt','a')	
     for item in user_data:
         file.write (item + user_data[item] + '\n')
     file.close()
     print("1:", user_data)
+# My integration with database
+    try:
+        conn = psycopg2.connect(dbname='Pizza_bot', user='...', password='...', host='localhost')
+    except:
+	    print("I am unable to connect to the database")
+	
+    cursor = conn.cursor()
+# Insert new order to database    
+    try:
+        for item in user_data:
+            cursor.execute('INSERT INTO order_details (product_type, product, order_id) VALUES (%s, %s, %s)', [item, user_data[item], 5])
+        conn.commit()
+    except:
+	    print("I could not insert into database")
+   
+   # cursor.execute("INSERT INTO Order_details (product, order_id) VALUES (%s, %s)", [user_data[item], int(1)])
+    #cursor.execute("INSERT INTO Order_details (product, order_id) VALUES (%s, %s)", ["RollbI", 100])
+	# cur.execute("INSERT INTO test (num, data) VALUES (%s, %s)", (100, "abc'def"))
+    cursor.execute("SELECT * FROM Order_details;")
+    rows = cursor.fetchall()
+    
+    for row in rows:
+	    print("row", row)
+    
+
+    cursor.close()
+    conn.close()
     if 'choice' in user_data:
         del user_data['choice']
 
     update.message.reply_text("I learned these facts about you:"
                               "{}"
                               "Until next time!".format(facts_to_str(user_data)))
-    print("2:", user_data)
+    
 	
     user_data.clear()
     return ConversationHandler.END
@@ -125,14 +183,16 @@ def main():
     # Create the Updater and pass it your bot's token.
     # Make sure to set use_context=True to use the new context based callbacks
     # Post version 12 this will no longer be necessary
-    updater = Updater("token", use_context=True)
-
+    updater = Updater("...", use_context=True)
+    
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
 
     # Add conversation handler with the states CHOOSING, TYPING_CHOICE and TYPING_REPLY
     conv_handler = ConversationHandler(
+        
         entry_points=[CommandHandler('start', start)],
+		
 
         states={
             CHOOSING: [MessageHandler(Filters.regex('^(Pizza|VOK|RollbI|Sets)$'),
@@ -164,6 +224,7 @@ def main():
     # Run the bot until you press Ctrl-C or the process receives SIGINT,
     # SIGTERM or SIGABRT. This should be used most of the time, since
     # start_polling() is non-blocking and will stop the bot gracefully.
+    print ("To make an order, please enter '/start' ")
     updater.idle()
 
 
