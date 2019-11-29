@@ -50,6 +50,7 @@ reply_keyboard = [['Pizza', 'VOK'],
 markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
 
+
 # 
 
 def facts_to_str(user_data):
@@ -72,31 +73,50 @@ def start(update, context):
 
     return CHOOSING
 
-
+# we use it to pass information about ordinary orders
 def regular_choice(update, context):
     
     
-    
+    # our text field is absolutely the same as database column name
     text = update.message.text
     
     context.user_data['choice'] = text
     update.message.reply_text(
         '{}? The wonderful choice! I imagine how tasty it will be. Please, choose the one you like'.format(text.capitalize()))
 	
-    if text=='Pizza':
-        reply_keyboard_pizza = [['Margarita','Test'],['Test']]
-        markup_pizza = ReplyKeyboardMarkup(reply_keyboard_pizza, one_time_keyboard=True)
-        update.message.reply_text('Please, choose the one you like',reply_markup=markup_pizza)
+    
+    try:
+        conn = psycopg2.connect(dbname='Pizza_bot', user='Kate', password='123456', host='localhost')
+    except:
+	    print("I am unable to connect to the database")	
+    cursor = conn.cursor()
+        # Select new order to database    
+    try:
+        cursor.execute("SELECT product FROM products WHERE product_type = (%s)", [text])
+        reply_keyboard_pizza = cursor.fetchall()
 		
-
+    except:
+	    print("I could not insert into database")
+    cursor.close()
+    conn.close()
+ # I make a keyboard with the types of concrete product and suggest user to choose it
+    markup_pizza = ReplyKeyboardMarkup(reply_keyboard_pizza, one_time_keyboard=True)
+    update.message.reply_text('Please, choose the one you like',reply_markup=markup_pizza)
+	
     return TYPING_REPLY
 
 
 def custom_choice(update, context):
     update.message.reply_text('Please send me what you want, '
                               'for example "Fresh drinks"')
+    text = update.message.text
+    context.user_data['choice'] = text
+    update.message.reply_text(
+        'Our manager will connect with you about this possibility.'.format(text.capitalize()))
 
-    return TYPING_CHOICE
+    user_data = context.user_data
+    print ("custom_choice", user_data)
+    return TYPING_REPLY
 
 
 def received_information(update, context):
@@ -104,13 +124,12 @@ def received_information(update, context):
     text = update.message.text
     category = user_data['choice']
     user_data[category] = text
+    print ("custom_choice", user_data)
     del user_data['choice']
 
-    update.message.reply_text("Neat! Just so you know, this is what you already told me:"
-                              "{} You can tell me more, or change your opinion"
-                              " on something.".format(facts_to_str(user_data)),
+    update.message.reply_text("Just so you know, this is what you already told me:"
+                              "{}".format(facts_to_str(user_data)),
                               reply_markup=markup)
-
     return CHOOSING
 
 
@@ -137,40 +156,78 @@ def done(update, context):
     print("1:", user_data)
 # My integration with database
     try:
-        conn = psycopg2.connect(dbname='Pizza_bot', user='...', password='...', host='localhost')
+        conn = psycopg2.connect(dbname='Pizza_bot', user='Kate', password='123456', host='localhost')
     except:
 	    print("I am unable to connect to the database")
 	
     cursor = conn.cursor()
+    for item in user_data:
+        print("item", item)
+        if item == 'Something else...':
+            try:
+                cursor.execute('INSERT INTO order_details (product_type, product, order_id, price) VALUES (%s, %s, %s, %s)', ["Something else...", user_data[item], order_id, 0])
+                conn.commit()
+                print("I insert into order_details", item, user_data[item], order_id)
+            except:
+	            print("I could not insert into database order_details 1")
+			    
+	
 # Insert new order to database    
+    sum = 0    
     try:
-        for item in user_data:
-            cursor.execute('INSERT INTO order_details (product_type, product, order_id) VALUES (%s, %s, %s)', [item, user_data[item], 5])
+        for item in user_data:            
+            if item == "Pizza" or item == "VOK" or item == "Rolls" or item == "Sets":
+                cursor.execute("SELECT price FROM products WHERE product=(%s)", [user_data[item]])
+                prod = cursor.fetchone()
+                price = prod [0]
+                sum = sum + price
+             #print ("price", price)
+                cursor.execute('INSERT INTO order_details (product_type, product, order_id, price) VALUES (%s, %s, %s, %s)', [item, user_data[item], order_id, price])
+                conn.commit()
+    except:
+	    print("I could not insert into database 2")
+    try:
+	# insert order into orders table
+        cursor.execute('INSERT INTO orders (user_id, order_id, check_sum, payment_method, order_date) VALUES (%s, %s, %s, %s, %s)', [user['id'], order_id, sum, 0, order_date])
+        print ("INSERT INTO orders - Sucess") 
+	# insert user into orders table if we have no this user. We have a list of turples
+        list_id = []
+        cursor.execute("SELECT id from users")
+        list_id = cursor.fetchall()
+        
+        check_id = 1
+        for item in list_id:  # I use loop to detect if we have this user in our users table
+            if item[0] == user['id']:
+                check_id = 0
+                break				
+        if check_id != 0:
+            cursor.execute('INSERT INTO users (id, name, location) VALUES (%s, %s, %s)', [user['id'], user['first_name'], order_location])
+        print ("INSERT INTO users - Sucess") 
         conn.commit()
     except:
-	    print("I could not insert into database")
+	    print("I could not insert into database 3")
    
-   # cursor.execute("INSERT INTO Order_details (product, order_id) VALUES (%s, %s)", [user_data[item], int(1)])
-    #cursor.execute("INSERT INTO Order_details (product, order_id) VALUES (%s, %s)", ["RollbI", 100])
-	# cur.execute("INSERT INTO test (num, data) VALUES (%s, %s)", (100, "abc'def"))
-    cursor.execute("SELECT * FROM Order_details;")
+    cursor.execute("SELECT * FROM orders WHERE user_id = (%s) AND order_id = (%s) AND order_date = (%s)", [user['id'], order_id,order_date])
     rows = cursor.fetchall()
-    
-    for row in rows:
-	    print("row", row)
+    row = rows[0]
+    print("row", row)
     
 
     cursor.close()
     conn.close()
+    print("context.user_data", context.user_data)
     if 'choice' in user_data:
         del user_data['choice']
 
-    update.message.reply_text("I learned these facts about you:"
-                              "{}"
-                              "Until next time!".format(facts_to_str(user_data)))
+    update.message.reply_text("So, your order is next:"
+                              "{}".format(facts_to_str(user_data)))
     
-	
+    str(sum)
+    update.message.reply_text("Summary for: ""{}".format(sum))
+    
+    update.message.reply_text("Until next time! Type /start to make a new order")
     user_data.clear()
+    order_id = 0
     return ConversationHandler.END
 
 
@@ -195,7 +252,7 @@ def main():
 		
 
         states={
-            CHOOSING: [MessageHandler(Filters.regex('^(Pizza|VOK|RollbI|Sets)$'),
+            CHOOSING: [MessageHandler(Filters.regex('^(Pizza|VOK|Rolls|Sets)$'),
                                       regular_choice),
                        MessageHandler(Filters.regex('^Something else...$'),
                                       custom_choice)
